@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NAFDAC Drug Verification</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8f9fa;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      width: 400px;
+      max-width: 90%;
+    }
+
+    h1 {
+      text-align: center;
+      color: #007bff;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 15px 0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      background: #f1f1f1;
+      display: none;
+    }
+
+    .valid { border-left: 5px solid green; }
+    .invalid { border-left: 5px solid red; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>NAFDAC Verification</h1>
+    <input type="text" id="nafdacInput" placeholder="Enter or Scan NAFDAC Number (NRN)">
+    <button onclick="verifyDrug()">Verify</button>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    let nafdacData = [];
+
+    // Load JSON file from root directory
+    fetch("nafdac_data.json")
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Failed to load nafdac_data.json");
+        }
+        return response.json();
+      })
+      .then(data => {
+        nafdacData = data;
+      })
+      .catch(error => {
+        console.error("Error loading NAFDAC data:", error);
+      });
+
+    function verifyDrug() {
+      const input = document.getElementById("nafdacInput").value.trim();
+      const resultDiv = document.getElementById("result");
+
+      if (!input) {
+        resultDiv.style.display = "block";
+        resultDiv.className = "invalid";
+        resultDiv.innerHTML = "<strong>Please enter a NAFDAC number.</strong>";
+        return;
+      }
+
+      const drug = nafdacData.find(d => d.NRN.toLowerCase() === input.toLowerCase());
+
+      if (drug) {
+        resultDiv.style.display = "block";
+        resultDiv.className = "valid";
+        resultDiv.innerHTML = `
+          <h3>${drug["Product name"]}</h3>
+          <p><strong>NAFDAC No:</strong> ${drug.NRN}</p>
+          <p><strong>Status:</strong> ${drug.Status}</p>
+          <p><strong>Applicant:</strong> ${drug["Applicant Name"]}</p>
+          <p><strong>Expiry Date:</strong> ${drug["Expiry Date"]}</p>
+        `;
+      } else {
+        resultDiv.style.display = "block";
+        resultDiv.className = "invalid";
+        resultDiv.innerHTML = "<strong>❌ Invalid or Unregistered NAFDAC Number.</strong>";
+      }
+    }
+  </script>
+</body>
+</html>
